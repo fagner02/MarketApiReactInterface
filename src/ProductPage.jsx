@@ -17,7 +17,6 @@ export class ProductPage extends Component {
     ProductFetch.getAll().then((res) => {
       if (!this.willUnmount) {
         this.setState({ products: res });
-        console.log("b ", this.state.products, "b");
       }
     });
   }
@@ -25,16 +24,12 @@ export class ProductPage extends Component {
   componentDidMount() {
     this.willUnmount = false;
     this.refresh();
-    // const elem = document.querySelector(".container :nth-child(1)");
-    // elem.style.height = `${elem.scrollHeight}px`;
-    // console.log(elem.style.height);
   }
 
   componentDidUpdate() {}
 
   componentWillUnmount() {
     this.willUnmount = true;
-    console.log("unmount");
   }
 
   openAddProduct() {
@@ -90,6 +85,7 @@ export class ProductPage extends Component {
     info.style.opacity = "0";
     setTimeout(() => {
       edit.style.height = `${edit.scrollHeight}px`;
+      edit.style.padding = "10px";
     }, 500);
   }
 
@@ -100,6 +96,7 @@ export class ProductPage extends Component {
       return;
     }
     edit.style.height = "0px";
+    edit.style.padding = "0px";
     setTimeout(() => {
       info.style.height = `${info.scrollHeight}px`;
       info.style.padding = "10px";
@@ -107,7 +104,60 @@ export class ProductPage extends Component {
     }, 500);
   }
 
+  toggleDetails(id) {
+    const info = document.getElementById(id);
+    const edit = document.querySelector(`#edit${id}`);
+    const controls = document.querySelector(`#a${id}`);
+    if (info.style.height === "0px" && edit.style.height === "0px") {
+      info.style.height = `${info.scrollHeight}px`;
+      info.style.padding = "10px";
+      info.style.opacity = "1";
+      controls.style.transform = "scale(1)";
+      controls.style.opacity = "1";
+      return;
+    }
+    info.style.height = "0px";
+    info.style.padding = "0px 10px";
+    edit.style.height = "0px";
+    edit.style.padding = "0px";
+    controls.style.transform = "scale(0)";
+    controls.style.opacity = "0";
+  }
+
+  openDeleteView(id) {
+    const elem = document.querySelector(`#row-content${id}`);
+    const controls = document.querySelector(`#delete-options${id}`);
+    this.toggleDetails(id);
+    controls.style.transform = "scale(1)";
+    controls.style.padding = "10px";
+    controls.style.opacity = "1";
+    elem.style.opacity = "0";
+    elem.style.height = "0px";
+    elem.style.padding = "0px";
+  }
+
+  closeDeleteView(id) {
+    const elem = document.querySelector(`#row-content${id}`);
+    const controls = document.querySelector(`#delete-options${id}`);
+
+    if (elem.style.height !== "0px") {
+      return;
+    }
+
+    this.toggleDetails(id);
+    controls.style.opacity = "0";
+    controls.style.transform = "scale(0)";
+    controls.style.padding = "0px";
+    elem.style.opacity = "1";
+    elem.style.height = `${elem.scrollHeight}px`;
+
+    setTimeout(() => {
+      elem.style.height = "auto";
+    }, 500);
+  }
+
   render() {
+    const { children } = this.state;
     return (
       <div>
         <h1>Hello</h1>
@@ -120,7 +170,7 @@ export class ProductPage extends Component {
             Update
           </button>
           <button
-            id="add-category"
+            id="add-product"
             style={{ margin: "0 10px" }}
             onClick={() => this.openAddProduct()}>
             Add Product
@@ -133,54 +183,51 @@ export class ProductPage extends Component {
               transition: "all 0.4s ease",
               opacity: "1",
             }}>
-            {this.state.products.map((item) => (
+            {/*ITEM ROW ---------------------------------- */}
+            {this.state.products?.map((item) => (
               <div
                 className="row"
+                id={"row" + item.id}
                 key={item.id}
-                style={{ flexDirection: "column", height: "auto" }}>
+                style={{
+                  display: "grid",
+                  height: "auto",
+                  gridTemplate: "1fr / 1fr",
+                }}>
+                {/*ITEM ROW CONTENT ------------------------------*/}
                 <div
-                  style={{ display: "flex", cursor: "pointer" }}
+                  id={"row-content" + item.id}
+                  style={{
+                    zIndex: "1",
+                    display: "flex",
+                    cursor: "pointer",
+                    transition: "all 0.4s ease",
+                    overflow: "hidden",
+                    gridColumn: "1 / 1",
+                    gridRow: "1 / 1",
+                  }}
+                  /*TOGGLE DETAIL VIEW -------------------------------------*/
                   onClick={(e) => {
-                    const info = document.getElementById(item.id);
-                    const edit = document.querySelector(`#edit${item.id}`);
-                    const controls = document.querySelector(`#a${item.id}`);
                     ProductFetch.getDetail(item.id).then((data) => {
                       this.setState((prevState) => {
                         let children = Object.assign({}, prevState.children);
                         children[item.id] = data;
                         return { children };
                       });
-                      if (
-                        info.style.height === "0px" &&
-                        edit.style.height === "0px"
-                      ) {
-                        info.style.height = `${info.scrollHeight}px`;
-                        info.style.padding = "10px";
-                        info.style.opacity = "1";
-                        controls.style.transform = "scale(1)";
-                        controls.style.opacity = "1";
-                      } else {
-                        info.style.height = "0px";
-                        info.style.padding = "0px 10px";
-                        edit.style.height = "0px";
-                        edit.style.padding = "0px";
-                        controls.style.transform = "scale(0)";
-                        controls.style.opacity = "0";
-                      }
+                      this.toggleDetails(item.id);
                     });
                   }}>
+                  {/*ITEM ROW INNER CONTENT --------------------------------*/}
                   <p className="cell title-label">{item.name}</p>
                   <p className="cell" style={{ flexBasis: "100%" }}>
                     {item.id}
                   </p>
+                  {/*ITEM ROW CONTROLS --------------------------------------*/}
                   <div className="item-controls" id={"a" + item.id}>
                     <div
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log("delete");
-                        ProductFetch.delete(item.id).then((res) => {
-                          this.refresh();
-                        });
+                        this.openDeleteView(item.id);
                       }}>
                       <TrashIcon size="20" color="white" />
                     </div>
@@ -193,10 +240,8 @@ export class ProductPage extends Component {
                     </div>
                   </div>
                 </div>
-                <div
-                  style={{
-                    height: "auto",
-                  }}>
+                {/*ITEM DETAILS CONTAINER --------------------------------- */}
+                <div>
                   <div
                     id={item.id}
                     style={{
@@ -205,34 +250,95 @@ export class ProductPage extends Component {
                       overflow: "hidden",
                       transition: "all 0.4s ease",
                     }}>
-                    <p>Products:</p>
+                    <p>Category</p>
                     <div
                       style={{
                         padding: "5px 10px",
                         border: "1px solid black",
                         borderRadius: "5px",
                       }}>
-                      {this.state.children[item.id]?.map((product) => (
-                        <div key={product.id}>
-                          <div style={{ display: "flex" }}>
-                            <p>Name: {product.name}</p>
-                          </div>
+                      {/*DETAIL ROWS --------------------------------- */}
+                      <div
+                        key={children[item.id]?.id}
+                        style={{ display: "flex", flexDirection: "column" }}>
+                        <div>
+                          <p>Name: {children[item.id]?.name}</p>
                         </div>
-                      ))}
+                      </div>
                     </div>
                   </div>
+
+                  {/*EDIT ITEM CONTAINER --------------------------------- */}
                   <div
-                    style={{ height: "0px", transition: "all 0.5s" }}
+                    style={{
+                      height: "0px",
+                      padding: "0px",
+                      transition: "all 0.5s",
+                      overflow: "hidden",
+                    }}
                     id={"edit" + item.id}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                      }}>
+                      {/*EDIT INPUT ROWS ----------------------------------------------------*/}
+                      <div style={{ display: "flex", gap: "10px" }}>
+                        <p className="cell title-label input-label">Name</p>
+                        <input type="text" />
+                      </div>
+                      {/*EDIT CONTROLS -----------------------------------------------------*/}
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "end",
+                          alignItems: "center",
+                          gap: "10px",
+                        }}>
+                        <button
+                          onClick={(e) => {
+                            this.closeEdit(item.id);
+                          }}>
+                          Cancel
+                        </button>
+                        <button>Done</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/*DELETE OPTIONS --------------------------------------*/}
+                <div style={{ gridColumn: "1 / 1", gridRow: "1 / 1" }}>
+                  <div
+                    id={"delete-options" + item.id}
+                    style={{
+                      padding: "0px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      transform: "scale(0)",
+                      transition: "all 0.5s ease",
+                    }}>
+                    <p>Are you sure you want to delete this item?</p>
                     <div style={{ display: "flex" }}>
-                      <p className="cell title-label input-label">Name</p>
+                      <button
+                        style={{
+                          marginRight: "10px",
+                        }}
+                        onClick={() => {
+                          ProductFetch.delete(item.id).then((res) => {
+                            this.refresh();
+                          });
+                        }}>
+                        Yes
+                      </button>
                       <button
                         onClick={(e) => {
-                          this.closeEdit(item.id);
+                          e.stopPropagation();
+                          this.closeDeleteView(item.id);
                         }}>
-                        Cancel
+                        No
                       </button>
-                      <button>Cancel</button>
                     </div>
                   </div>
                 </div>
@@ -240,36 +346,32 @@ export class ProductPage extends Component {
             ))}
           </div>
         </div>
+        {/* ADD ITEM CONTAINER ------------------------------------- */}
         <div
           className="container"
           style={{
             display: "flex",
-            padding: "0px",
+            padding: "10px",
             borderRadius: "10px",
             height: "0px",
             overflow: "hidden",
             opacity: "0",
+            gap: "10px",
             transition:
               "padding 0.4s ease, height 0.4s ease, opacity 0.2s ease",
           }}>
+          {/*INPUT ROW -----------------------------------------------*/}
           <div style={{ display: "flex", gap: "10px" }}>
             <p className="cell title-label input-label">Name</p>
             <input type="text" name="name" className="name-text" />
-            <input
-              type="text"
-              name="description"
-              className="description-text"
-            />
-            <input type="number" name="price" className="price-text" />
           </div>
           <div
             style={{
               display: "flex",
               justifyContent: "flex-end",
-              padding: "5px 10px",
+              gap: "10px",
             }}>
             <button
-              style={{ margin: "0px 10px" }}
               onClick={() => {
                 this.closeAddProduct();
               }}>

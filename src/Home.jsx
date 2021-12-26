@@ -13,7 +13,6 @@ class Home extends Component {
   componentDidMount() {}
 
   async setAnimation() {
-    //console.log(document.querySelector(".table-container"));
     this.setState({ size: 1 });
     await new Promise(() =>
       setTimeout(() => {

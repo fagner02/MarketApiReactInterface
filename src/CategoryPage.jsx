@@ -17,7 +17,6 @@ export class CategoryPage extends Component {
     CategoryFetch.getAll().then((res) => {
       if (!this.willUnmount) {
         this.setState({ categories: res });
-        console.log("b ", this.state.categories, "b");
       }
     });
   }
@@ -25,16 +24,12 @@ export class CategoryPage extends Component {
   componentDidMount() {
     this.willUnmount = false;
     this.refresh();
-    // const elem = document.querySelector(".container :nth-child(1)");
-    // elem.style.height = `${elem.scrollHeight}px`;
-    // console.log(elem.style.height);
   }
 
   componentDidUpdate() {}
 
   componentWillUnmount() {
     this.willUnmount = true;
-    console.log("unmount");
   }
 
   openAddCategory() {
@@ -139,11 +134,9 @@ export class CategoryPage extends Component {
     elem.style.opacity = "0";
     elem.style.height = "0px";
     elem.style.padding = "0px";
-    console.log("open");
   }
 
   closeDeleteView(id) {
-    console.log("close");
     const elem = document.querySelector(`#row-content${id}`);
     const controls = document.querySelector(`#delete-options${id}`);
 
@@ -157,10 +150,8 @@ export class CategoryPage extends Component {
     controls.style.padding = "0px";
     elem.style.opacity = "1";
     elem.style.height = `${elem.scrollHeight}px`;
-    console.log(elem.style.height);
     setTimeout(() => {
       elem.style.height = "auto";
-      console.log("updated");
     }, 500);
   }
 
@@ -284,18 +275,24 @@ export class CategoryPage extends Component {
                       overflow: "hidden",
                     }}
                     id={"edit" + item.id}>
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      {/*INPUT ROWS ----------------------------------------------------*/}
-                      <div style={{ display: "flex" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                      }}>
+                      {/*EDIT INPUT ROWS ----------------------------------------------------*/}
+                      <div style={{ display: "flex", gap: "10px" }}>
                         <p className="cell title-label input-label">Name</p>
                         <input type="text" />
                       </div>
-                      {/*CONTROLS -----------------------------------------------------*/}
+                      {/*EDIT CONTROLS -----------------------------------------------------*/}
                       <div
                         style={{
                           display: "flex",
                           justifyContent: "end",
                           alignItems: "center",
+                          gap: "10px",
                         }}>
                         <button
                           onClick={(e) => {
@@ -325,7 +322,6 @@ export class CategoryPage extends Component {
                         marginRight: "10px",
                       }}
                       onClick={() => {
-                        console.log("delete");
                         CategoryFetch.delete(item.id).then((res) => {
                           this.refresh();
                         });
@@ -335,7 +331,6 @@ export class CategoryPage extends Component {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log("closeclick");
                         this.closeDeleteView(item.id);
                       }}>
                       No
@@ -356,10 +351,11 @@ export class CategoryPage extends Component {
             height: "0px",
             overflow: "hidden",
             opacity: "0",
+            gap: "10px",
             transition:
               "padding 0.4s ease, height 0.4s ease, opacity 0.2s ease",
           }}>
-          {/* INPUT ROW */}
+          {/*INPUT ROW -----------------------------------------------*/}
           <div style={{ display: "flex", gap: "10px" }}>
             <p className="cell title-label input-label">Name</p>
             <input type="text" name="name" className="name-text" />
@@ -368,10 +364,9 @@ export class CategoryPage extends Component {
             style={{
               display: "flex",
               justifyContent: "flex-end",
-              padding: "5px 10px",
+              gap: "10px",
             }}>
             <button
-              style={{ margin: "0px 10px" }}
               onClick={() => {
                 this.closeAddCategory();
               }}>
